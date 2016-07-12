@@ -1,20 +1,18 @@
 #!/usr/bin/env python
 
 import json
-from sys import argv
+import sys
 
-def json_in(filename):
-    fh = open(filename)
+def json_in(fh):
     contents = json.load(fh)
-    print "Here's your file %r:" % filename
+    print "Here's your file:"
     print contents
 
 def to_csv():
     pass
 
 def main():
-    script, filename = argv
-    json_in(filename)
+    json_in(sys.stdin)
 	
 
 if __name__ == '__main__':
