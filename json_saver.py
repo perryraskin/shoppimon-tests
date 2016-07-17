@@ -15,8 +15,8 @@ def to_csv(parsed_input):
     csv_file_name = time.strftime("%d_%m_%Y") + "_data.csv"
 
     with open(csv_file_name, 'w') as csvfile:
-        dict_writer = csv.DictWriter(csvfile, fieldnames=['height', 'weight', 'name'])
-        #dict_writer = csv.DictWriter(csvfile, fieldnames=keys)
+        #dict_writer = csv.DictWriter(csvfile, fieldnames=['height', 'weight', 'name'])
+        dict_writer = csv.DictWriter(csvfile, fieldnames=keys)
         dict_writer.writeheader() # writing header in the csv file
         dict_writer.writerow(parsed_input)
 
