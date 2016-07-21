@@ -9,7 +9,8 @@ import time
 
 
 def to_csv(parsed_input):
-    # Create csv file and write data to it
+    """Get a dict of event data and save it to CSV file
+    """
     keys = parsed_input.keys()
     csv_file_name = str(parsed_input['user_id']) + "_" + time.strftime("%d_%m_%Y") + "_data.csv"
 
@@ -22,8 +23,6 @@ def to_csv(parsed_input):
     return csv_file_name
 
 
-app = Flask(__name__)
-
 @app.route('/user_events', methods=['POST'])
 def save_user_event():
     data = request.json
@@ -35,5 +34,6 @@ def save_user_event():
 
 
 if __name__ == '__main__':
+    app = Flask(__name__)
     app.run(debug=True)
 
