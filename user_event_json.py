@@ -14,7 +14,11 @@ def to_csv(parsed_input):
     """Get a dict of event data and save it to CSV file
     """
     keys = parsed_input.keys()
-    csv_file_name = str(parsed_input['user_id']) + "_" + time.strftime("%d_%m_%Y") + "_data.csv"
+    try:
+        csv_file_name = str(parsed_input['user_id']) + "_" + time.strftime("%d_%m_%Y") + "_data.csv"
+    except KeyError:
+        csv_file_name = str(parsed_input['account_id']) + "_" + time.strftime("%d_%m_%Y") + "_data.csv"
+        
 
     with open(csv_file_name, 'w') as csvfile:
         #dict_writer = csv.DictWriter(csvfile, fieldnames=['user_id', 'height', 'weight', ])
@@ -28,7 +32,7 @@ def to_csv(parsed_input):
 @app.route('/user_events', methods=['POST'])
 def save_user_event():
     data = request.json
-    if 'user_id' not in data.keys() and 'account_id' not in data.keys():
+    if ('user_id' not in data.keys()) and ('account_id' not in data.keys()):
         return 'Error! user_id or account_id field is missing\n'
     if 'event' not in data.keys():
         return 'Error! event field is missing\n'
