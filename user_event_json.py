@@ -32,10 +32,7 @@ def to_csv(parsed_input):
 
 def print_correct_string(json_event):
     with open("config.yaml", 'r') as stream:
-        try:
-            router_settings = yaml.load(stream)
-        except yaml.YAMLError as exc:
-            print exc
+        router_settings = yaml.load(stream)
 
     if json_event['event'] in router_settings['routing']:
         for service in router_settings['routing'][json_event['event']]:
