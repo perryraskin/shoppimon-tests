@@ -6,8 +6,9 @@ import json
 import sys
 import csv
 import time
-import yaml
 import MySQLdb
+
+import config
 
 app = Flask(__name__)
 
@@ -31,17 +32,21 @@ def to_csv(parsed_input):
     return csv_file_name + "\n"
 
 
-def send_event(json_event):
-    with open("config.yaml", 'r') as stream:
-        router_settings = yaml.load(stream)
 
+
+def notify_user(json_event, router_settings):
     if json_event['event'] in router_settings['routing']:
         for service in router_settings['routing'][json_event['event']]:
-            print "Sending {event} event to {services} service.".format(event = json_event['event'], services = service) 
+            print "Sending {event} event to {services} service.".format(event = json_event['event'], services = service)
 
+
+def db_connect():
     # Open database connection
     db = MySQLdb.connect("localhost","root","","shoppimon_hub")
+    return db
 
+
+def send_event(json_event, db):
     # Prepare a cursor object using cursor() method
     cursor = db.cursor()
 
@@ -79,10 +84,13 @@ def save_user_event():
         return 'Error! event field is missing\n'
     elif 'source' not in data.keys():
         return 'Error! source field is missing\n'
-    else:   
-        filename = to_csv(data)
-        send_event(data)
-        return filename
+
+    filename = to_csv(data)
+    router_settings = config.get_config()
+    notify_user(data, router_settings)
+    db = db_connect()
+    send_event(data, db)
+    return filename
 
 
 if __name__ == '__main__':
