@@ -7,6 +7,7 @@ import sys
 import csv
 import time
 import yaml
+import MySQLdb
 
 app = Flask(__name__)
 
@@ -30,13 +31,43 @@ def to_csv(parsed_input):
     return csv_file_name + "\n"
 
 
-def print_correct_string(json_event):
+def send_event(json_event):
     with open("config.yaml", 'r') as stream:
         router_settings = yaml.load(stream)
 
     if json_event['event'] in router_settings['routing']:
         for service in router_settings['routing'][json_event['event']]:
             print "Sending {event} event to {services} service.".format(event = json_event['event'], services = service) 
+
+    # Open database connection
+    db = MySQLdb.connect("localhost","root","","shoppimon_hub")
+
+    # Prepare a cursor object using cursor() method
+    cursor = db.cursor()
+
+    # Prepare SQL query to INSERT a record into the database.
+    sql = ("INSERT INTO user_data(event_id, time, user_id, account_id, event, source, attributes) "
+           "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s' )") % (
+            json_event['event_id'], 
+            json_event['time'], 
+            json_event['user_id'], 
+            json_event['account_id'], 
+            json_event['event'], 
+            json_event['source'], 
+            json.dumps(json_event['attributes']))
+    
+    try:
+        # Execute the SQL command
+        cursor.execute(sql)
+        # Commit your changes in the database
+        db.commit()
+    except:
+        # Rollback in case there is any error
+        db.rollback()
+        print "Error"
+
+    # disconnect from server
+    db.close()
 
 
 @app.route('/user_events', methods=['POST'])
@@ -50,7 +81,7 @@ def save_user_event():
         return 'Error! source field is missing\n'
     else:   
         filename = to_csv(data)
-        print_correct_string(data)
+        send_event(data)
         return filename
 
 
