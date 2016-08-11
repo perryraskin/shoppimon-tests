@@ -7,8 +7,10 @@ import sys
 import csv
 import time
 import MySQLdb
+import yaml
+import boto3
 
-import config
+__config = None
 
 app = Flask(__name__)
 
@@ -85,12 +87,35 @@ def save_user_event():
     elif 'source' not in data.keys():
         return 'Error! source field is missing\n'
 
-    filename = to_csv(data)
-    router_settings = config.get_config()
+    router_settings = get_config("s3://shoppimon-artifacts/event_hub_config.yml")
     notify_user(data, router_settings)
     db = db_connect()
     send_event(data, db)
-    return filename
+
+
+def get_config(path):
+    global __config
+
+    if path.startswith("s3"):
+        # Use Amazon S3
+        s3 = boto3.client('s3')
+
+        bucket_name = path.split("/")[2]
+        key_name = path.split(bucket_name)[-1]
+
+        # Download object at bucket-name with key-name to tmp.txt
+        s3.download_file(bucket_name, key_name, "tmp.yaml")
+
+        if __config is None:
+            with open("tmp.yaml", 'r') as stream:
+                __config = yaml.load(stream)
+        
+    else:
+        if __config is None:
+            with open(path, 'r') as stream:
+                __config = yaml.load(stream)
+
+    return __config
 
 
 if __name__ == '__main__':
